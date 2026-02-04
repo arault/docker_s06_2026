@@ -1,0 +1,31 @@
+---
+name: busystack
+services:
+  busysvc:
+    image: busybox:1.36
+    container_name: busy
+    hostname: busycnt
+    environment:
+      - STAGE=DOCKER
+    ports:
+      - 80:80
+    volumes:
+      - data:/partage
+      - /home/stagiaire/data:/data
+    networks:
+      busynet:
+        ipv4_address: 172.20.0.100
+    restart: unless-stopped
+    command: sleep 3600
+
+volumes:
+  data:
+
+networks:
+  busynet:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.255.254
+    driver_opts:
+      com.docker.network.bridge.name: busynet0

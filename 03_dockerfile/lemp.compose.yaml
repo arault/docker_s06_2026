@@ -1,0 +1,48 @@
+---
+name: lempstack
+services:
+  www:
+    image: nginx:1.29
+    container_name: www
+    ports:
+      - 80:80
+    networks:
+      lempnet:
+        ipv4_address: 172.40.0.100
+    restart: unless-stopped
+    volumes:
+      - ./html/:/usr/share/nginx/html/
+      - ./nginx-conf/:/etc/nginx/conf.d/
+  php:
+    image: php-mysql:8.5-fpm
+    container_name: php
+    networks:
+      lempnet:
+        ipv4_address: 172.40.0.110
+    restart: unless-stopped
+    volumes:
+      - ./html/:/var/www/html/
+  db:
+    image: mariadb:11.8
+    container_name: db
+    networks:
+      lempnet:
+        ipv4_address: 172.40.0.120
+    restart: unless-stopped
+    volumes:
+      - datadb:/var/lib/mysql/
+    # environment:
+    #   - MARIADB_ROOT_PASSWORD: azerty
+    env_file: ./mariadb.env
+
+volumes:
+  datadb:
+
+networks:
+  lempnet:
+    ipam:
+      config:
+        - subnet: 172.40.0.0/16
+          gateway: 172.40.255.254
+    driver_opts:
+      com.docker.network.bridge.name: lempnet0
