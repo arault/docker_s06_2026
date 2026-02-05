@@ -1,0 +1,15 @@
+---
+entryPoints:
+  http:
+    address: ":80"
+  https:
+    address: ":443"
+
+api:
+  insecure: true
+  dashboard: true
+
+providers:
+  docker:
+    endpoint: "unix:///run/docker.sock"
+    exposedByDefault: false

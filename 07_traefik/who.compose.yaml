@@ -1,0 +1,57 @@
+---
+name: whostack
+services:
+  who-1:
+    image: traefik/whoami:v1.11
+    container_name: who-1
+    hostname: who-1
+    #ports:
+    #  - 8081:80
+    restart: unless-stopped
+    networks:
+      - proxynet
+      - whonet
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxynet
+      # Rediriger les requêtes envoyées à http://who-1.stage.local vers ce conteneur
+      - traefik.http.routers.who1.rule=Host(`who-1.stage.local`)
+
+  who-2:
+    image: traefik/whoami:v1.11
+    container_name: who-2
+    hostname: who-2
+    restart: unless-stopped
+    networks:
+      - proxynet
+      - whonet
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxynet
+      # Rediriger les requêtes demandant l'URL http://nom-ou-ip-du-docker-host/who-2 vers ce conteneur
+      - traefik.http.routers.who2.rule=PathPrefix(`/who-2`)
+      - traefik.http.routers.who2.middlewares=who2strip
+      - traefik.http.middlewares.who2strip.stripprefix.prefixes=/who-2
+  
+  who-3:
+    image: traefik/whoami:v1.11
+    container_name: who-3
+    hostname: who-3
+    restart: unless-stopped
+    networks:
+      - proxynet
+      - whonet
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxynet
+      # Rediriger vers ce conteneur les requêtes 
+      #   - envoyées à http://who-3.stage.local
+      #   - et demandant l'URL /who-3
+      - traefik.http.routers.who3.rule=(Host(`who-3.stage.local`) && PathPrefix(`/who-3`))
+      - traefik.http.routers.who3.middlewares=who3strip
+      - traefik.http.middlewares.who3strip.stripprefix.prefixes=/who-3
+
+networks:
+  whonet:
+  proxynet:
+    external: true
