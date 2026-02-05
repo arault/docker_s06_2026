@@ -1,0 +1,20 @@
+---
+services:
+  registry:
+    image: registry:3
+    container_name: registry
+    ports:
+      - 5000:5000
+    volumes:
+      - registry:/var/lib/registry
+    networks:
+      registrynet:
+    restart: unless-stopped
+
+volumes:
+  registry:
+
+networks:
+  registrynet:
+    driver_opts:
+      com.docker.network.bridge.name: registrynet0
