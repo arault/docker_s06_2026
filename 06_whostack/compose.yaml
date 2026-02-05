@@ -1,0 +1,26 @@
+---
+name: whostack
+services:
+  who-1:
+    image: traefik/whoami:v1.11
+    container_name: who-1
+    hostname: who-1
+    ports:
+      - 8081:80
+    restart: unless-stopped
+
+  who-2:
+    image: traefik/whoami:v1.11
+    container_name: who-2
+    hostname: who-2
+    ports:
+      - 8082:80
+    restart: unless-stopped
+  
+  who-3:
+    image: traefik/whoami:v1.11
+    container_name: who-3
+    hostname: who-3
+    ports:
+      - 8083:80
+    restart: unless-stopped
