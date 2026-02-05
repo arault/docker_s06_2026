@@ -5,8 +5,8 @@ services:
     image: busybox:1.36
     container_name: busynfs
     command:
-      - sleep
-      - 3600
+      - "sleep"
+      - "3600"
     volumes:
       - datanfs:/opt/remote_nfs/
 
