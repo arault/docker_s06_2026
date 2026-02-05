@@ -1,5 +1,13 @@
 ---
 name: lempstack
+
+x-default-logging: &default-logging
+  logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
+
 services:
   www:
     image: nginx:${NGINX_IMAGE_TAG}
@@ -18,9 +26,14 @@ services:
       - traefik.enable=true
       - traefik.docker.network=proxynet
       - traefik.http.routers.www.rule=Host(`www.stage.local`)
+    <<: *default-logging
 
   php:
     image: ${PHP_IMAGE}:${PHP_IMAGE_TAG}
+    pull_policy: missing
+    build:
+      context: ../03_dockerfile
+      dockerfile: Dockerfile
     container_name: php
     networks:
       lempnet:
@@ -28,6 +41,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./html/:/var/www/html/
+    <<: *default-logging
+
   db:
     image: mariadb:${MARIADB_IMAGE_TAG}
     container_name: db
@@ -40,6 +55,7 @@ services:
     # environment:
     #   - MARIADB_ROOT_PASSWORD: azerty
     #env_file: ./mariadb.env
+    <<: *default-logging
 
 volumes:
   datadb:
