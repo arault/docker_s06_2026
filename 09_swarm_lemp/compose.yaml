@@ -1,0 +1,57 @@
+---
+x-replicas: &default-replicas
+  deploy:
+    replicas: 2
+
+services:
+  www:
+    image: nginx:1.29
+    ports:
+      - 80:80
+    networks:
+      lempnet:
+    volumes:
+      - html-nfs:/usr/share/nginx/html/
+      - nginx-conf-nfs:/etc/nginx/conf.d/
+    <<: *default-replicas
+
+  php:
+    image: php:8.5-fpm
+    networks:
+      lempnet:
+    volumes:
+      - html-nfs:/var/www/html/
+    <<: *default-replicas
+
+  db:
+    image: mariadb:11.8
+    networks:
+      lempnet:
+    volumes:
+      - datadb-nfs:/var/lib/mysql/
+    environment:
+      - MARIADB_ROOT_PASSWORD=azerty
+    deploy:
+      replicas: 1
+
+volumes:
+  datadb-nfs:
+    driver_opts:
+      type: nfs
+      o: addr=192.168.56.200,vers=4.2
+      device: ":/mariadb"
+  html-nfs:
+    driver_opts:
+      type: nfs
+      o: addr=192.168.56.200,vers=4.2
+      device: ":/html"
+  nginx-conf-nfs:
+    driver_opts:
+      type: nfs
+      o: addr=192.168.56.200,vers=4.2
+      device: ":/nginx-conf"
+
+networks:
+  lempnet:
+    driver_opts:
+      com.docker.network.bridge.name: lempnet0
