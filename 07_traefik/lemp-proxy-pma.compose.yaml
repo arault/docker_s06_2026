@@ -1,0 +1,84 @@
+---
+name: lempstack
+
+x-default-logging: &default-logging
+  logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
+
+services:
+  www:
+    image: nginx:${NGINX_IMAGE_TAG}
+    container_name: www
+    networks:
+      lempnet:
+        ipv4_address: ${LEMPNET_PREFIX}.${NGINX_IPV4}
+      proxynet:
+    restart: unless-stopped
+    volumes:
+      - ./html/:/usr/share/nginx/html/
+      - ./nginx-conf/:/etc/nginx/conf.d/
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxynet
+      - traefik.http.routers.www.rule=Host(`www.stage.local`)
+    <<: *default-logging
+
+  php:
+    image: ${PHP_IMAGE}:${PHP_IMAGE_TAG}
+    pull_policy: missing
+    build:
+      context: ../03_dockerfile
+      dockerfile: Dockerfile
+    container_name: php
+    networks:
+      lempnet:
+        ipv4_address: ${LEMPNET_PREFIX}.${PHP_IPV4}
+    restart: unless-stopped
+    volumes:
+      - ./html/:/var/www/html/
+    <<: *default-logging
+
+  db:
+    image: mariadb:${MARIADB_IMAGE_TAG}
+    container_name: db
+    networks:
+      lempnet:
+        ipv4_address: ${LEMPNET_PREFIX}.${MARIADB_IPV4}
+    restart: unless-stopped
+    volumes:
+      - datadb:/var/lib/mysql/
+    <<: *default-logging
+  
+  phpmyadmin:
+    image: phpmyadmin:${PHPMYADMIN_IMAGE_TAG}
+    container_name: phpmyadmin
+    networks:
+      lempnet:
+        ipv4_address: ${LEMPNET_PREFIX}.${PHPMYADMIN_IPV4}
+      proxynet:
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxynet
+      - traefik.http.routers.pma.rule=Host(`pma.stage.local`)
+    depends_on:
+      - db
+    <<: *default-logging
+
+
+volumes:
+  datadb:
+
+networks:
+  lempnet:
+    ipam:
+      config:
+        - subnet: 172.40.0.0/16
+          gateway: 172.40.255.254
+    driver_opts:
+      com.docker.network.bridge.name: lempnet0
+  proxynet:
+    external: true
