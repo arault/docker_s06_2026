@@ -1,0 +1,10 @@
+---
+services:
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    ports:
+      - 80:80
+    restart: unless-stopped
+    deploy:
+      replicas: 2
